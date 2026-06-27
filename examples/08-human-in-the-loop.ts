@@ -1,11 +1,11 @@
 /**
- * Human-in-the-loop with the native SDK approval flow.
+ * Example 08 — Human-in-the-loop: approve a sensitive action before it runs.
  *
  * A tool marked `needsApproval: true` pauses the run; `run(...)` returns a result with
- * `interruptions`. You approve/reject on `result.state`, then resume by running the
- * same state.
+ * `interruptions`. You approve/reject on `result.state`, then resume by running the same
+ * state.
  *
- * Run:  ZIWEI_API_KEY=sk_ziwei_... npx tsx examples/human-in-the-loop.ts
+ * Run:  ZIWEI_API_KEY=sk_ziwei_... npx tsx examples/08-human-in-the-loop.ts
  */
 
 import { createInterface } from 'node:readline/promises';

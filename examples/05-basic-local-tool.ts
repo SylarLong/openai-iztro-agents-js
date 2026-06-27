@@ -1,9 +1,14 @@
 /**
- * Basic example: a local function tool the hosted Ziwei agent can call.
+ * Example 05 — Your first tool: a local function the hosted Ziwei agent can call.
  *
- * Run:  ZIWEI_API_KEY=sk_ziwei_... npx tsx examples/basic-local-tool.ts
+ * A "tool" is one of your functions the agent is allowed to call. You define it with
+ * `tool(...)`, list it when you build the agent, and the agent decides when to call it.
+ * Your tools run locally, in this process.
  *
- * (Once installed from npm, import from 'openai-iztro-agents' instead of '../src'.)
+ * The agent reads the chart AUTOMATICALLY (on the server — you never write a tool for
+ * that). Your tools are only for YOUR world (calendar, email, notes, your own data).
+ *
+ * Run:  ZIWEI_API_KEY=sk_ziwei_... npx tsx examples/05-basic-local-tool.ts
  */
 
 import { run, tool } from '@openai/agents';
