@@ -38,9 +38,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/a5507203/openai-iztro-agents-js.git"
+    "url": "git+https://github.com/SylarLong/openai-iztro-agents-js.git"
   },
-  "homepage": "https://github.com/a5507203/openai-iztro-agents-js#readme",
+  "homepage": "https://github.com/SylarLong/openai-iztro-agents-js#readme",
   "dependencies": {
     "@openai/agents": "^0.12.0",
     "openai": "^6.45.0",
