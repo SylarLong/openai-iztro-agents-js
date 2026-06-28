@@ -11,7 +11,7 @@
 import { run, tool } from '@openai/agents';
 import { z } from 'zod';
 
-import { iztroZiweiAgent } from '../src/index.js';
+import { iztroZiweiAgent, type IztroModelResponse } from '../src/index.js';
 
 const API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
 
@@ -50,6 +50,14 @@ async function main(): Promise<void> {
     'Born 1995-09-09 at noon, female. Based on my chart\'s dominant element, ' +
       'tell me my lucky color and lucky number in one sentence.',
   );
+
+  // Local tools make this a MULTI-STEP run: result.rawResponses has one entry per model
+  // call, and each keeps its own server-side iztro tools — nothing is overwritten.
+  console.log('\n=== iztro tools per model call ===');
+  result.rawResponses.forEach((r, i) => {
+    const tools = (r as IztroModelResponse).iztroTools ?? [];
+    console.log(`  call ${i}: ${tools.join(', ') || '(none)'}`);
+  });
 
   console.log('\n=== Final reply ===');
   console.log(result.finalOutput);

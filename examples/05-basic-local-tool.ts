@@ -14,7 +14,7 @@
 import { run, tool } from '@openai/agents';
 import { z } from 'zod';
 
-import { ChatSession, iztroZiweiAgent } from '../src/index.js';
+import { ChatSession, iztroZiweiAgent, type IztroModelResponse } from '../src/index.js';
 
 const API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
 
@@ -41,6 +41,12 @@ async function main(): Promise<void> {
       'day next week based on my chart and add it to my calendar.',
     { session },
   );
+  // A local tool makes the run span several model calls; each call's response carries its
+  // own iztro tools, so gather them across result.rawResponses (deduped, in order).
+  const used = [
+    ...new Set(result.rawResponses.flatMap((r) => (r as IztroModelResponse).iztroTools ?? [])),
+  ];
+  console.log('🔮 iztro computed:', used.join(', '));
   console.log(result.finalOutput);
   await session.close();
 }

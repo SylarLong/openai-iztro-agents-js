@@ -16,7 +16,7 @@ import { Agent, OpenAIChatCompletionsModel, run, tool } from '@openai/agents';
 import OpenAI from 'openai';
 import { z } from 'zod';
 
-import { iztroZiweiAgent } from '../src/index.js';
+import { iztroZiweiAgent, type IztroZiweiModel } from '../src/index.js';
 
 // Fill in your keys and model (or set them as environment variables).
 const ZIWEI_API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
@@ -37,11 +37,14 @@ const addToCalendar = tool({
 });
 
 async function main(): Promise<void> {
-  // The Ziwei agent, wrapped as a tool the orchestrator can call.
-  const ziweiReading = iztroZiweiAgent({
+  // The Ziwei agent, wrapped as a tool the orchestrator can call. Keep a reference to the
+  // agent: its model runs INSIDE the sub-agent, so its responses aren't in the
+  // orchestrator's result.rawResponses — read the iztro tools off the model afterwards.
+  const ziweiAgent = iztroZiweiAgent({
     instructions: '你是一位资深紫微斗数命理师，请基于真实命盘给出专业、具体的解读。',
     apiKey: ZIWEI_API_KEY,
-  }).asTool({
+  });
+  const ziweiReading = ziweiAgent.asTool({
     toolName: 'ziwei_reading',
     toolDescription: 'Get a professional Ziwei reading. Pass birth date, time, gender, and the question.',
   });
@@ -67,6 +70,8 @@ async function main(): Promise<void> {
     'Today is 2026-06-26. I was born 1990-06-15 at 10:00, male. ' +
       'Ask the astrologer for one auspicious day next week, then put it on my calendar.',
   );
+  // The sub-agent's tools aren't in the orchestrator's result; read them off its model.
+  console.log('\n🔮 iztro computed:', (ziweiAgent.model as IztroZiweiModel).lastIztroTools.join(', '));
   console.log('\n=== Final reply ===');
   console.log(result.finalOutput);
   console.log('\nYour calendar now holds:', myCalendar);

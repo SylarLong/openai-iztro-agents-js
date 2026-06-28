@@ -25,7 +25,18 @@ export { Agent, Runner, run, tool } from '@openai/agents';
 
 export { iztroZiweiAgent } from './agent.js';
 export type { IztroZiweiAgentOptions } from './agent.js';
-export { DEFAULT_BASE_URL, IZTRO_ZIWEI_MODEL, iztroZiweiModel } from './model.js';
-export type { IztroZiweiModelOptions } from './model.js';
+export {
+  DEFAULT_BASE_URL,
+  IZTRO_ZIWEI_MODEL,
+  IZTRO_TOOLS_EVENT_TYPE,
+  IztroZiweiModel,
+  iztroZiweiModel,
+  isIztroToolsStreamEvent,
+} from './model.js';
+export type {
+  IztroZiweiModelOptions,
+  IztroModelResponse,
+  IztroToolsStreamEvent,
+} from './model.js';
 export { ChatSession, listUserConversations } from './session.js';
 export type { ChatSessionOptions, ListUserConversationsOptions } from './session.js';

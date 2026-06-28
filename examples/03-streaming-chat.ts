@@ -12,7 +12,7 @@
 
 import { run } from '@openai/agents';
 
-import { iztroZiweiAgent } from '../src/index.js';
+import { iztroZiweiAgent, isIztroToolsStreamEvent } from '../src/index.js';
 
 const API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
 
@@ -30,8 +30,21 @@ async function main(): Promise<void> {
   );
 
   process.stdout.write('>> The reading is being written:\n\n');
-  // toTextStream() yields the assistant text in chunks, like live typing.
-  for await (const chunk of streamed.toTextStream()) process.stdout.write(chunk);
+  // Both text chunks and iztro tool calls arrive as raw_model_stream_events; branch on
+  // the data type. (Other event types — run items, agent updates — are ignored.)
+  for await (const event of streamed) {
+    if (event.type !== 'raw_model_stream_event') continue;
+    // `event.data` is typed as the SDK's own stream events; our IztroToolsStreamEvent is
+    // an extra event the model injects, so widen to unknown for the type guard.
+    const data = event.data as unknown;
+    if (isIztroToolsStreamEvent(data)) {
+      // The server just ran these chart tools — printed live, as they happen, before
+      // the text that uses them.
+      process.stdout.write(`\n🔮 iztro computed: ${data.tools.join(', ')}\n`);
+    } else if (event.data.type === 'output_text_delta') {
+      process.stdout.write(event.data.delta);
+    }
+  }
   await streamed.completed;
 
   // Once streaming ends, the whole text is also available in one piece.

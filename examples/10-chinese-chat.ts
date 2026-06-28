@@ -10,7 +10,7 @@
 import { run, tool } from '@openai/agents';
 import { z } from 'zod';
 
-import { iztroZiweiAgent } from '../src/index.js';
+import { iztroZiweiAgent, type IztroModelResponse } from '../src/index.js';
 
 const API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
 
@@ -42,6 +42,11 @@ async function main(): Promise<void> {
     '我出生于 1990 年 6 月 15 日上午 10 点，男性。请用三句话分析我的性格，并把要点用 save_note 工具记下来。',
   );
 
+  // 多轮调用，汇总每次模型调用在服务端跑过的 iztro 工具
+  const used = [
+    ...new Set(result.rawResponses.flatMap((r) => (r as IztroModelResponse).iztroTools ?? [])),
+  ];
+  console.log('\n🔮 已调用 iztro：', used.join('、'));
   console.log('\n=== 最终回复 ===');
   console.log(result.finalOutput);
   console.log('\n笔记本里现在有：', notebook);

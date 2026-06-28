@@ -13,7 +13,7 @@ import { createInterface } from 'node:readline/promises';
 import { run, tool } from '@openai/agents';
 import { z } from 'zod';
 
-import { iztroZiweiAgent } from '../src/index.js';
+import { iztroZiweiAgent, type IztroModelResponse } from '../src/index.js';
 
 const API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
 
@@ -47,6 +47,10 @@ async function main(): Promise<void> {
   }
   rl.close();
 
+  const used = [
+    ...new Set(result.rawResponses.flatMap((r) => (r as IztroModelResponse).iztroTools ?? [])),
+  ];
+  console.log('\n🔮 iztro computed:', used.join(', '));
   console.log('\n=== Final reply ===');
   console.log(result.finalOutput);
 }

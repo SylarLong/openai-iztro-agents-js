@@ -16,7 +16,7 @@
 
 import { run } from '@openai/agents';
 
-import { iztroZiweiAgent } from '../src/index.js';
+import { iztroZiweiAgent, type IztroModelResponse } from '../src/index.js';
 
 const API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
 
@@ -40,6 +40,10 @@ async function main(): Promise<void> {
     '我出生于 1990 年 6 月 15 日上午 10:00，男性。请给我一份完整的个人性格与人生格局解读。',
   );
 
+  // Which chart tools the server ran to ground this reading. In a non-streaming run they
+  // ride on each model call's response, so read them off result.rawResponses.
+  const last = result.rawResponses.at(-1) as IztroModelResponse;
+  console.log('🔮 iztro computed:', last.iztroTools.join(', '));
   console.log(result.finalOutput);
 }
 

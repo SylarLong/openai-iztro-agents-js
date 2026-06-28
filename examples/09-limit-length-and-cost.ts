@@ -16,7 +16,7 @@
 
 import { run } from '@openai/agents';
 
-import { iztroZiweiAgent } from '../src/index.js';
+import { iztroZiweiAgent, type IztroModelResponse } from '../src/index.js';
 
 const API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
 
@@ -28,6 +28,7 @@ async function fullDepth(): Promise<void> {
   const agent = iztroZiweiAgent({ instructions: INSTRUCTIONS, apiKey: API_KEY });
   const result = await run(agent, PROMPT);
   console.log('─'.repeat(60), '\n① FULL DEPTH (no token cap — this is the default)\n');
+  console.log('🔮 iztro computed:', (result.rawResponses.at(-1) as IztroModelResponse).iztroTools.join(', '));
   console.log(result.finalOutput);
 }
 
@@ -40,6 +41,7 @@ async function capped(maxTokens: number): Promise<void> {
   });
   const result = await run(agent, PROMPT);
   console.log('\n' + '─'.repeat(60), `\n② CAPPED (maxTokens=${maxTokens} — a cost/size ceiling)\n`);
+  console.log('🔮 iztro computed:', (result.rawResponses.at(-1) as IztroModelResponse).iztroTools.join(', '));
   console.log(result.finalOutput);
 }
 

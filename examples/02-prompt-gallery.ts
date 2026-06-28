@@ -12,7 +12,7 @@
 
 import { run } from '@openai/agents';
 
-import { iztroZiweiAgent } from '../src/index.js';
+import { iztroZiweiAgent, type IztroModelResponse } from '../src/index.js';
 
 const API_KEY = process.env.ZIWEI_API_KEY ?? 'sk_ziwei_REPLACE_WITH_YOUR_KEY';
 
@@ -40,6 +40,8 @@ async function main(): Promise<void> {
     console.log(`  Reading ${i + 1}/${PROMPTS.length}`);
     console.log('═'.repeat(64) + '\n');
     const result = await run(agent, PROMPTS[i]);
+    const last = result.rawResponses.at(-1) as IztroModelResponse;
+    console.log('🔮 iztro computed:', last.iztroTools.join(', '));
     console.log(result.finalOutput);
   }
 }
