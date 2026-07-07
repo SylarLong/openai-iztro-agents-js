@@ -1,7 +1,7 @@
 /**
  * ChatSession — server-side conversation memory for the OpenAI Agents SDK.
  *
- * A `Session` implementation backed by the hosted Ziwei conversation store, modeled on
+ * A `Session` implementation backed by the hosted Iztro conversation store, modeled on
  * the SDK's own `OpenAIConversationsSession`: the **server generates the conversation
  * id** (lazily, on first use), and `externalUserId` records which of *your* users owns
  * it (so you can list/manage a user's chats). Pair it with the stock model pointed at

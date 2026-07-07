@@ -3,7 +3,12 @@
 import { Agent } from '@openai/agents';
 import type { Tool } from '@openai/agents';
 
-import { IZTRO_ZIWEI_MODEL, iztroZiweiModel } from './model.js';
+import {
+  IZTRO_QIMEN_MODEL,
+  IZTRO_ZIWEI_MODEL,
+  iztroQimenModel,
+  iztroZiweiModel,
+} from './model.js';
 
 export interface IztroZiweiAgentOptions {
   name?: string;
@@ -18,6 +23,8 @@ export interface IztroZiweiAgentOptions {
   /** Any other stock `Agent` config (e.g. `modelSettings`, `toolUseBehavior`). */
   [key: string]: unknown;
 }
+
+export type IztroQimenAgentOptions = IztroZiweiAgentOptions;
 
 /**
  * Return a stock `Agent` whose model is the hosted Ziwei agent.
@@ -52,6 +59,35 @@ export function iztroZiweiAgent(options: IztroZiweiAgentOptions = {}): Agent {
     name,
     ...(instructions !== undefined ? { instructions } : {}),
     model: iztroZiweiModel({ apiKey, baseUrl, model: modelName }),
+    tools: (tools ?? []) as Tool[],
+    mcpServers: (mcpServers ?? []) as never,
+    ...rest,
+  });
+}
+
+/**
+ * Return a stock `Agent` whose model is the hosted Qimen agent.
+ *
+ * Developer tools and MCP servers run locally through the OpenAI Agents SDK. The qimen
+ * tools stay hosted and are surfaced through `toolEvent` / `iztroTools` and
+ * `IztroToolEvent`.
+ */
+export function iztroQimenAgent(options: IztroQimenAgentOptions = {}): Agent {
+  const {
+    name = 'Qimen',
+    instructions,
+    tools,
+    mcpServers,
+    apiKey,
+    baseUrl,
+    modelName = IZTRO_QIMEN_MODEL,
+    ...rest
+  } = options;
+
+  return new Agent({
+    name,
+    ...(instructions !== undefined ? { instructions } : {}),
+    model: iztroQimenModel({ apiKey, baseUrl, model: modelName }),
     tools: (tools ?? []) as Tool[],
     mcpServers: (mcpServers ?? []) as never,
     ...rest,

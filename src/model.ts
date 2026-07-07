@@ -1,13 +1,13 @@
 /**
- * Factory for the hosted Ziwei model as a stock OpenAI Agents SDK model.
+ * Factories for hosted Iztro models as stock OpenAI Agents SDK models.
  *
- * The hosted agent runs the iztro chart tools on the server and reports which ran via a
- * custom `iztro_tools` field on the chat-completion response. The base SDK does not expose
+ * The hosted models run astrology tools on the server and report which ran via a custom
+ * `iztro_tools` field on the chat-completion response. The base SDK does not expose
  * it as a first-class value, so {@link IztroZiweiModel} surfaces it where it belongs:
  *
  * - non-streaming: each `result.rawResponses[i]` is an {@link IztroModelResponse} carrying
  *   that call's `iztroTools`;
- * - streaming: an {@link IztroToolsStreamEvent} is emitted as each tool is called.
+ * - streaming: an {@link IztroToolEvent} is emitted as each tool is called.
  *
  * It never fakes standard tool calls (which would make the SDK try to execute the
  * server-side tools locally).
@@ -19,9 +19,12 @@ import OpenAI from 'openai';
 
 export const DEFAULT_BASE_URL = 'https://chat-api.iztro.com';
 export const IZTRO_ZIWEI_MODEL = 'iztro-ziwei-v3';
+export const IZTRO_QIMEN_MODEL = 'iztro-qimen-v3';
 
-/** The `type` discriminator carried by an {@link IztroToolsStreamEvent}. */
-export const IZTRO_TOOLS_EVENT_TYPE = 'iztro_tools';
+/** The `type` discriminator carried by an {@link IztroToolEvent}. */
+export const TOOL_EVENT_TYPE = 'tool_event';
+/** Backwards-compatible constant name. New code should use {@link TOOL_EVENT_TYPE}. */
+export const IZTRO_TOOLS_EVENT_TYPE = TOOL_EVENT_TYPE;
 
 /**
  * A streamed event emitted as the server runs an iztro chart tool, *before* the answer.
@@ -34,27 +37,33 @@ export const IZTRO_TOOLS_EVENT_TYPE = 'iztro_tools';
  * ```ts
  * for await (const event of stream) {
  *   if (event.type === 'raw_model_stream_event') {
- *     if (isIztroToolsStreamEvent(event.data)) console.log('iztro:', event.data.tools);
+ *     if (isIztroToolEvent(event.data)) console.log('iztro:', event.data.tools);
  *     else if (event.data.type === 'output_text_delta') process.stdout.write(event.data.delta);
  *   }
  * }
  * ```
  */
-export interface IztroToolsStreamEvent {
-  type: typeof IZTRO_TOOLS_EVENT_TYPE;
+export interface IztroToolEvent {
+  type: typeof TOOL_EVENT_TYPE;
   /** The new public iztro tool labels for this batch, e.g. `['iztro-liunian 2026']`. */
   tools: string[];
 }
 
-/** Narrow a streamed `raw_model_stream_event`'s `.data` to an {@link IztroToolsStreamEvent}. */
-export function isIztroToolsStreamEvent(data: unknown): data is IztroToolsStreamEvent {
+/** Backwards-compatible event type name. New code should use {@link IztroToolEvent}. */
+export type IztroToolsStreamEvent = IztroToolEvent;
+
+/** Narrow a streamed `raw_model_stream_event`'s `.data` to an {@link IztroToolEvent}. */
+export function isIztroToolEvent(data: unknown): data is IztroToolEvent {
   return (
     typeof data === 'object' &&
     data !== null &&
-    (data as { type?: unknown }).type === IZTRO_TOOLS_EVENT_TYPE &&
+    (data as { type?: unknown }).type === TOOL_EVENT_TYPE &&
     Array.isArray((data as { tools?: unknown }).tools)
   );
 }
+
+/** Backwards-compatible guard name. New code should use {@link isIztroToolEvent}. */
+export const isIztroToolsStreamEvent = isIztroToolEvent;
 
 /**
  * A {@link ModelResponse} that also carries the hidden server-side iztro chart tools that
@@ -72,6 +81,7 @@ export function isIztroToolsStreamEvent(data: unknown): data is IztroToolsStream
  */
 export interface IztroModelResponse extends ModelResponse {
   iztroTools: string[];
+  toolEvent?: IztroToolEvent;
 }
 
 /**
@@ -97,11 +107,14 @@ export interface IztroZiweiModelOptions {
  *
  * - Non-streaming (`run`): each `result.rawResponses[i]` is an {@link IztroModelResponse}
  *   whose `iztroTools` lists that call's tools.
- * - Streaming: an {@link IztroToolsStreamEvent} is emitted as each tool is called.
+ * - Streaming: an {@link IztroToolEvent} is emitted as each tool is called.
  *
- * `lastIztroTools` is a convenience holding the most recent call's tools.
+ * `lastToolEvent` is a convenience holding the most recent tool event.
+ * `lastIztroTools` remains as a compatibility alias for the tools list.
  */
 export class IztroZiweiModel extends OpenAIChatCompletionsModel {
+  /** The most recent hosted-tool event. */
+  lastToolEvent?: IztroToolEvent;
   /** The iztro tools from the most recent model call. */
   lastIztroTools: string[] = [];
 
@@ -110,14 +123,16 @@ export class IztroZiweiModel extends OpenAIChatCompletionsModel {
     // `iztro_tools` field survives there — lift it onto a first-class `iztroTools`.
     const response = await super.getResponse(request);
     const tools = extractIztroTools(response.providerData);
+    this.lastToolEvent = tools.length ? { type: TOOL_EVENT_TYPE, tools } : undefined;
     this.lastIztroTools = tools;
-    return { ...response, iztroTools: tools };
+    return { ...response, iztroTools: tools, toolEvent: this.lastToolEvent };
   }
 
   async *getStreamedResponse(request: ModelRequest): AsyncIterable<ResponseStreamEvent> {
     // Every raw chunk arrives as a `model` event; the iztro tools are a custom top-level
     // field on the chunk, sent as each tool is called (before the answer). Emit a distinct
-    // IztroToolsStreamEvent per NEW tool, right before passing the chunk through.
+    // IztroToolEvent per NEW tool, right before passing the chunk through.
+    this.lastToolEvent = undefined;
     this.lastIztroTools = [];
     const seen = new Set<string>();
     for await (const event of super.getStreamedResponse(request)) {
@@ -128,11 +143,11 @@ export class IztroZiweiModel extends OpenAIChatCompletionsModel {
         if (fresh.length > 0) {
           fresh.forEach((t) => seen.add(t));
           this.lastIztroTools = [...seen];
-          const iztroEvent: IztroToolsStreamEvent = {
-            type: IZTRO_TOOLS_EVENT_TYPE,
+          this.lastToolEvent = {
+            type: TOOL_EVENT_TYPE,
             tools: fresh,
           };
-          yield iztroEvent as unknown as ResponseStreamEvent;
+          yield this.lastToolEvent as unknown as ResponseStreamEvent;
         }
       }
       yield event;
@@ -145,8 +160,8 @@ export class IztroZiweiModel extends OpenAIChatCompletionsModel {
  *
  * The iztro chart tools run inside this model on the server (hidden). `apiKey` / `baseUrl`
  * fall back to `ZIWEI_API_KEY` / `ZIWEI_BASE_URL`. After a run, read the server-side iztro
- * tools from `result.rawResponses[i].iztroTools` (non-streaming) or from an
- * {@link IztroToolsStreamEvent} (streaming).
+ * tools from `result.rawResponses[i].toolEvent` / `.iztroTools` (non-streaming) or
+ * from an {@link IztroToolEvent} (streaming).
  *
  * ```ts
  * import { Agent, run } from '@openai/agents';
@@ -171,4 +186,15 @@ export function iztroZiweiModel(options: IztroZiweiModelOptions = {}): IztroZiwe
   // identities differ even for the same physical module, so pin to the ctor's type.
   type ClientArg = ConstructorParameters<typeof OpenAIChatCompletionsModel>[0];
   return new IztroZiweiModel(client as unknown as ClientArg, options.model ?? IZTRO_ZIWEI_MODEL);
+}
+
+/**
+ * Build the hosted Qimen agent as an {@link IztroZiweiModel}.
+ *
+ * Qimen uses the same transport and event surface as Ziwei. Server-side qimen tools
+ * such as `qimen-qigua` and `qimen-yingqi` appear in
+ * `result.rawResponses[i].toolEvent` / `.iztroTools` or as {@link IztroToolEvent}.
+ */
+export function iztroQimenModel(options: IztroZiweiModelOptions = {}): IztroZiweiModel {
+  return iztroZiweiModel({ ...options, model: options.model ?? IZTRO_QIMEN_MODEL });
 }

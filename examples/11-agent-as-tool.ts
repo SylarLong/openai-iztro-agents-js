@@ -70,8 +70,9 @@ async function main(): Promise<void> {
     'Today is 2026-06-26. I was born 1990-06-15 at 10:00, male. ' +
       'Ask the astrologer for one auspicious day next week, then put it on my calendar.',
   );
-  // The sub-agent's tools aren't in the orchestrator's result; read them off its model.
-  console.log('\n🔮 iztro computed:', (ziweiAgent.model as IztroZiweiModel).lastIztroTools.join(', '));
+  // The sub-agent's tools aren't in the orchestrator's result; read the latest tool event.
+  const toolEvent = (ziweiAgent.model as IztroZiweiModel).lastToolEvent;
+  console.log('\n🔮 iztro computed:', (toolEvent?.tools ?? []).join(', '));
   console.log('\n=== Final reply ===');
   console.log(result.finalOutput);
   console.log('\nYour calendar now holds:', myCalendar);

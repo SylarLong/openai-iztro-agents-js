@@ -1,6 +1,6 @@
 # openai-iztro-agents (JavaScript / TypeScript)
 
-Build your own **Ziwei (Purple Star Astrology / 紫微斗数) agent** in TypeScript.
+Build your own **Ziwei (Purple Star Astrology / 紫微斗数) or Qimen agent** in TypeScript.
 
 > `npm install openai-iztro-agents` → `import { iztroZiweiAgent } from 'openai-iztro-agents'`
 >
@@ -8,11 +8,11 @@ Build your own **Ziwei (Purple Star Astrology / 紫微斗数) agent** in TypeScr
 
 A thin layer on top of the [OpenAI Agents SDK for JS/TS](https://github.com/openai/openai-agents-js) (`@openai/agents`):
 
-- The **hosted Ziwei agent and its iztro chart tools** run on the server (hidden) — exposed as a stock SDK model.
+- The **hosted Ziwei and Qimen models and their astrology tools** run on the server (hidden) — exposed as stock SDK models.
 - **Your own function tools, MCP servers, and human-in-the-loop** run locally via the standard `run()`.
 - **Conversation memory** lives on the server via `ChatSession` (the OpenAI Conversations–style session).
 
-You write ordinary OpenAI Agents SDK code — `Agent`, `run`, `tool`, `@openai/agents` MCP servers, `modelSettings.toolChoice`, `needsApproval` — and point the model at Ziwei. This is the JS twin of the Python [`openai-iztro-agents`](https://pypi.org/project/openai-iztro-agents/): same design, different language.
+You write ordinary OpenAI Agents SDK code — `Agent`, `run`, `tool`, `@openai/agents` MCP servers, `modelSettings.toolChoice`, `needsApproval` — and point the model at Ziwei or Qimen. This is the JS twin of the Python [`openai-iztro-agents`](https://pypi.org/project/openai-iztro-agents/): same design, different language.
 
 ## Install
 
@@ -47,6 +47,36 @@ console.log(result.finalOutput);
 ```
 
 `iztroZiweiAgent(...)` returns a **stock `Agent`** whose model is the hosted Ziwei agent — so everything from the OpenAI Agents SDK works unchanged (`result.newItems`, streaming via `run(agent, input, { stream: true })`, handoffs, tracing, …).
+
+## Qimen model
+
+Use `iztroQimenAgent(...)` or `iztroQimenModel(...)` for the hosted Qimen model:
+
+```ts
+import { run } from '@openai/agents';
+import { iztroQimenAgent } from 'openai-iztro-agents';
+
+const agent = iztroQimenAgent({ apiKey: 'sk_ziwei_...' });
+const result = await run(agent, '用奇门问一下这个合作什么时候推进比较合适？');
+console.log(result.finalOutput);
+```
+
+`iztro-qimen-v3` uses only the hosted qimen tools (`qimen-qigua`, `qimen-yingqi`). Your local function tools, MCP servers, and human-in-the-loop still run through the normal OpenAI Agents SDK.
+
+## Tool events
+
+Hosted Ziwei/Qimen tools run inside the model, so the SDK does not expose them as local
+`tool_calls`. Instead, the wrapper reports them as tool events:
+
+```ts
+const result = await run(agent, '用奇门起局并判断应期。');
+const event = result.rawResponses.at(-1)?.toolEvent;
+console.log(event?.type, event?.tools); // tool_event ['qimen-qigua', 'qimen-yingqi']
+```
+
+Streaming emits `IztroToolEvent` before the text that uses the tool result. The older
+`.iztroTools`, `lastIztroTools`, and `IztroToolsStreamEvent` names still work for
+compatibility, but new code should use `toolEvent` / `IztroToolEvent`.
 
 ## Conversation memory & resume (ChatSession)
 
@@ -112,9 +142,11 @@ const agent = iztroZiweiAgent({ mcpServers: [weather], apiKey: KEY });
 |---|---|---|
 | `iztroZiweiAgent(opts)` | `iztro_ziwei_agent(...)` | stock `Agent`, hosted model |
 | `iztroZiweiModel(opts)` | `iztro_ziwei_model(...)` | stock `OpenAIChatCompletionsModel` |
+| `iztroQimenAgent(opts)` | `iztro_qimen_agent(...)` | stock `Agent`, hosted Qimen model |
+| `iztroQimenModel(opts)` | `iztro_qimen_model(...)` | stock `OpenAIChatCompletionsModel` |
 | `ChatSession` | `ChatSession` | server-side memory (`Session`) |
 | `listUserConversations(id, opts)` | `list_user_conversations(...)` | list a user's chats |
-| `DEFAULT_BASE_URL`, `IZTRO_ZIWEI_MODEL` | same | constants |
+| `DEFAULT_BASE_URL`, `IZTRO_ZIWEI_MODEL`, `IZTRO_QIMEN_MODEL`, `TOOL_EVENT_TYPE` | same | constants |
 | re-exports: `Agent`, `Runner`, `run`, `tool` | `Agent`, `Runner`, `function_tool` | from `@openai/agents` |
 
 Options use `camelCase` (`apiKey`, `baseUrl`, `externalUserId`, `modelName`) — the JS convention — where Python uses `snake_case`.

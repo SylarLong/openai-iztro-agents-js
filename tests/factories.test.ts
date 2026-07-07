@@ -12,9 +12,15 @@ import { Agent, run } from '@openai/agents';
 import {
   ChatSession,
   DEFAULT_BASE_URL,
+  IZTRO_QIMEN_MODEL,
   IZTRO_ZIWEI_MODEL,
+  TOOL_EVENT_TYPE,
+  iztroQimenAgent,
+  iztroQimenModel,
   iztroZiweiAgent,
   iztroZiweiModel,
+  isIztroToolEvent,
+  isIztroToolsStreamEvent,
 } from '../src/index.js';
 import { assistantText, installFetch } from './_mock.js';
 
@@ -34,7 +40,7 @@ afterEach(() => {
 });
 
 /** Run one turn through a fetch that records the chat-completions URL + body. */
-async function captureRequest(agentOpts: Record<string, unknown>): Promise<{ url: string; body: any }> {
+async function captureRunRequest(makeAgent: () => Agent): Promise<{ url: string; body: any }> {
   const seen: { url: string; body: any } = { url: '', body: null };
   installFetch((url, init) => {
     if (!url.includes('/chat/completions')) return undefined;
@@ -45,8 +51,12 @@ async function captureRequest(agentOpts: Record<string, unknown>): Promise<{ url
       headers: { 'content-type': 'application/json' },
     });
   });
-  await run(iztroZiweiAgent(agentOpts), 'hi');
+  await run(makeAgent(), 'hi');
   return seen;
+}
+
+async function captureRequest(agentOpts: Record<string, unknown>): Promise<{ url: string; body: any }> {
+  return captureRunRequest(() => iztroZiweiAgent(agentOpts));
 }
 
 describe('model factory', () => {
@@ -57,6 +67,14 @@ describe('model factory', () => {
   it('exposes the documented constants', () => {
     expect(DEFAULT_BASE_URL).toBe('https://chat-api.iztro.com');
     expect(IZTRO_ZIWEI_MODEL).toBe('iztro-ziwei-v3');
+    expect(IZTRO_QIMEN_MODEL).toBe('iztro-qimen-v3');
+    expect(TOOL_EVENT_TYPE).toBe('tool_event');
+  });
+
+  it('keeps the old tool-event guard name working', () => {
+    const event = { type: 'tool_event', tools: ['qimen-qigua'] };
+    expect(isIztroToolEvent(event)).toBe(true);
+    expect(isIztroToolsStreamEvent(event)).toBe(true);
   });
 
   it('uses the default base + /v2 and default model on the wire', async () => {
@@ -64,6 +82,13 @@ describe('model factory', () => {
     const { url, body } = await captureRequest({});
     expect(url).toBe(`${DEFAULT_BASE_URL}/v2/chat/completions`);
     expect(body.model).toBe(IZTRO_ZIWEI_MODEL);
+  });
+
+  it('has a qimen model factory', async () => {
+    const { body } = await captureRunRequest(
+      () => new Agent({ name: 'Qimen', model: iztroQimenModel({ apiKey: 'k' }) }),
+    );
+    expect(body.model).toBe(IZTRO_QIMEN_MODEL);
   });
 
   it('explicit baseUrl wins over env and trims a trailing slash', async () => {
@@ -93,6 +118,15 @@ describe('agent factory', () => {
     const agent = iztroZiweiAgent({ apiKey: 'k' });
     expect(agent.name).toBe('Ziwei');
     expect(agent.tools).toEqual([]);
+  });
+
+  it('has a qimen agent factory', async () => {
+    const agent = iztroQimenAgent({ apiKey: 'k' });
+    expect(agent).toBeInstanceOf(Agent);
+    expect(agent.name).toBe('Qimen');
+    expect(agent.tools).toEqual([]);
+    const { body } = await captureRunRequest(() => iztroQimenAgent({ apiKey: 'k' }));
+    expect(body.model).toBe(IZTRO_QIMEN_MODEL);
   });
 
   it('forwards extra kwargs to the SDK Agent', () => {
