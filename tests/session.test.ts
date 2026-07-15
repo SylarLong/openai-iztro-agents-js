@@ -3,7 +3,7 @@
  *
  * Covers lazy server-side id creation, add/get/pop/clear, multi-turn accumulation,
  * ownership by `externalUserId` + `listUserConversations`, resuming an explicit id
- * without a create call, and that the auth header is sent.
+ * without a create call, full/prefix forks, and that the auth header is sent.
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -89,6 +89,39 @@ describe('ChatSession', () => {
     expect(s.sessionId).toBe('conv_existing'); // available immediately, no create
     expect((await s.getItems())[0]).toMatchObject({ content: 'earlier' });
     expect(backend.counter).toBe(0); // no POST /conversations happened
+  });
+
+  it('forks a full conversation or only its first N items', async () => {
+    const backend = new InMemoryConversations();
+    const source = session(backend, { externalUserId: 'alice' });
+    await source.addItems([
+      { role: 'user', content: 'q1' } as never,
+      { role: 'assistant', content: 'a1' } as never,
+      { role: 'user', content: 'q2' } as never,
+      { role: 'assistant', content: 'a2' } as never,
+    ]);
+
+    const full = await source.fork();
+    const prefix = await source.fork({ itemCount: 2 });
+    const empty = await source.fork({ itemCount: 0 });
+
+    expect(full.sessionId).not.toBe(source.sessionId);
+    expect((await full.getItems()).map((item: any) => item.content)).toEqual([
+      'q1',
+      'a1',
+      'q2',
+      'a2',
+    ]);
+    expect((await prefix.getItems()).map((item: any) => item.content)).toEqual(['q1', 'a1']);
+    expect(await empty.getItems()).toEqual([]);
+    expect(backend.owners[full.sessionId]).toBe('alice');
+  });
+
+  it('rejects an invalid fork itemCount', async () => {
+    const backend = new InMemoryConversations();
+    const source = session(backend);
+    await expect(source.fork({ itemCount: -1 })).rejects.toThrow('non-negative integer');
+    await expect(source.fork({ itemCount: 1.5 })).rejects.toThrow('non-negative integer');
   });
 
   it('sends the bearer auth header', async () => {

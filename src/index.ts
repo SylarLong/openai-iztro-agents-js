@@ -44,4 +44,8 @@ export type {
   IztroToolsStreamEvent,
 } from './model.js';
 export { ChatSession, listUserConversations } from './session.js';
-export type { ChatSessionOptions, ListUserConversationsOptions } from './session.js';
+export type {
+  ChatSessionOptions,
+  ForkChatSessionOptions,
+  ListUserConversationsOptions,
+} from './session.js';

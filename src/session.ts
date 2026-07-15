@@ -50,6 +50,13 @@ export interface ChatSessionOptions {
   timeoutMs?: number;
 }
 
+export interface ForkChatSessionOptions {
+  /** Copy only the first N SDK session items. Omit to copy the whole conversation. */
+  itemCount?: number;
+  /** Owner for the new conversation. Defaults to the source session's owner. */
+  externalUserId?: string;
+}
+
 /**
  * Server-side conversation history with a server-generated id.
  *
@@ -150,8 +157,42 @@ export class ChatSession implements Session {
     this.#conversationId = undefined;
   }
 
+  /**
+   * Copy this conversation into a new server-side conversation.
+   *
+   * Keeping the prefix before a user message and then running the agent with
+   * replacement text implements history editing without mutating the original branch.
+   */
+  async fork(options: ForkChatSessionOptions = {}): Promise<ChatSession> {
+    const { itemCount } = options;
+    if (itemCount !== undefined && (!Number.isInteger(itemCount) || itemCount < 0)) {
+      throw new Error('itemCount must be a non-negative integer');
+    }
+
+    const items = await this.getItems();
+    const copiedItems = itemCount === undefined ? items : items.slice(0, itemCount);
+    const forked = new ChatSession({
+      externalUserId: options.externalUserId ?? this.externalUserId,
+      apiKey: this.#apiKey,
+      baseUrl: this.#base,
+      timeoutMs: this.#timeoutMs,
+    });
+    // getItems() intentionally creates an empty fork when itemCount is zero.
+    await forked.getItems();
+    await forked.addItems(copiedItems);
+    return forked;
+  }
+
   /** No-op; kept for parity with the Python client (`fetch` needs no teardown). */
   async close(): Promise<void> {}
+
+  /** List all conversations owned by one application user. */
+  static async listUserConversations(
+    externalUserId: string,
+    options: ListUserConversationsOptions = {},
+  ): Promise<Array<Record<string, unknown>>> {
+    return listUserConversations(externalUserId, options);
+  }
 }
 
 export interface ListUserConversationsOptions {

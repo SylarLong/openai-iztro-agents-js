@@ -98,6 +98,19 @@ await listUserConversations('user_42');
 
 `sessionId` precedence: explicit `conversationId` > a server-assigned id created lazily on first use. Reading `sessionId` before the conversation exists throws.
 
+Fork a complete conversation, or copy only the first N SDK session items before
+continuing with replacement text:
+
+```ts
+const forked = await session.fork();                 // copy the whole conversation
+const edited = await session.fork({ itemCount: 4 }); // copy items 0..3, then branch
+await run(agent, 'Use this edited question instead', { session: edited });
+```
+
+The runnable [ChatSession full-stack demo](examples/fullstack-demo) combines this with
+conversation lists, titles, deletion, history editing, live tool/chart indicators,
+Markdown rendering, and SSE streaming while keeping the API key on the Node backend.
+
 ## Tool-call modes
 
 Your tools use the SDK's native controls; the iztro tools are hidden:

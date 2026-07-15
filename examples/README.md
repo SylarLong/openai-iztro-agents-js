@@ -49,6 +49,7 @@ The reading prints to your screen.
 | `09-limit-length-and-cost.ts` | Cap output size to bound **cost** in production (not a quality setting). | `modelSettings: { maxTokens }` |
 | `10-chinese-chat.ts` | Do everything in Chinese (中文全程对话). | unicode end-to-end |
 | `11-agent-as-tool.ts` | Use the Ziwei agent as **one tool** inside your own GPT agent. | agents-as-tools |
+| `fullstack-demo/` | The same React chat workbench backed by this JS SDK: list, rename, delete, fork, edit, charts, Markdown, and streaming. | production integration shape |
 
 ## A few words you'll see
 
