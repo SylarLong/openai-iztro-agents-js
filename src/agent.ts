@@ -68,7 +68,12 @@ export function iztroZiweiAgent(options: IztroZiweiAgentOptions = {}): Agent {
 /**
  * Return a stock `Agent` whose model is the hosted Qimen agent.
  *
- * Developer tools and MCP servers run locally through the OpenAI Agents SDK. The qimen
+ * The Qimen model casts one chart from the question time for one concrete matter; it
+ * needs no birth details. It calls hosted `qimen-qigua` first and, when timing is
+ * relevant, `qimen-yingqi` after selecting the necessary yongshen. Pin a user's local
+ * question time with `modelSettings.providerData.metadata.current_datetime`.
+ *
+ * Developer tools and MCP servers run locally through the OpenAI Agents SDK. The Qimen
  * tools stay hosted and are surfaced through `toolEvent` / `iztroTools` and
  * `IztroToolEvent`.
  */

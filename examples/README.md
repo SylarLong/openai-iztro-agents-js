@@ -49,6 +49,7 @@ The reading prints to your screen.
 | `09-limit-length-and-cost.ts` | Cap output size to bound **cost** in production (not a quality setting). | `modelSettings: { maxTokens }` |
 | `10-chinese-chat.ts` | Do everything in Chinese (中文全程对话). | unicode end-to-end |
 | `11-agent-as-tool.ts` | Use the Ziwei agent as **one tool** inside your own GPT agent. | agents-as-tools |
+| `12-qimen-decision.ts` | Analyze one concrete decision and, when needed, calculate action windows with Qimen. | `iztroQimenAgent` + question time |
 | `fullstack-demo/` | The same React chat workbench backed by this JS SDK: list, rename, delete, fork, edit, charts, Markdown, and streaming. | production integration shape |
 
 ## A few words you'll see
@@ -69,6 +70,9 @@ The reading prints to your screen.
 - **ChatSession** — optional memory, so the agent remembers earlier messages. History lives
   on the server under a conversation id; **save `session.sessionId`** to resume the chat
   later (see `04-memory-and-resume.ts`). `listUserConversations(userId)` lists a user's chats.
+- **Qimen** — use `iztroQimenAgent({...})` for one concrete, time-sensitive matter. It
+  casts from the question time and needs no birth details; keep unrelated decisions in
+  separate runs so each matter gets its own chart (see `12-qimen-decision.ts`).
 
 ## If something goes wrong
 

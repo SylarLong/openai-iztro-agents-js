@@ -129,6 +129,20 @@ describe('agent factory', () => {
     expect(body.model).toBe(IZTRO_QIMEN_MODEL);
   });
 
+  it('forwards the documented Qimen question time metadata', async () => {
+    const { body } = await captureRunRequest(() =>
+      iztroQimenAgent({
+        apiKey: 'k',
+        modelSettings: {
+          providerData: {
+            metadata: { current_datetime: '2026-07-20T14:30:00+08:00' },
+          },
+        },
+      }),
+    );
+    expect(body.metadata).toEqual({ current_datetime: '2026-07-20T14:30:00+08:00' });
+  });
+
   it('forwards extra kwargs to the SDK Agent', () => {
     const agent = iztroZiweiAgent({ apiKey: 'k', toolUseBehavior: 'stop_on_first_tool' });
     expect((agent as { toolUseBehavior: unknown }).toolUseBehavior).toBe('stop_on_first_tool');
