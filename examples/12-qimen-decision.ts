@@ -36,7 +36,7 @@ async function main(): Promise<void> {
 
   for (const response of result.rawResponses as IztroModelResponse[]) {
     if (response.toolEvent) {
-      console.log('🔮 hosted Qimen tools:', response.toolEvent.tools.join(' -> '));
+      console.log('🔮 Iztro calculation:', response.toolEvent.tools.join(' -> '));
     }
   }
   console.log(result.finalOutput);

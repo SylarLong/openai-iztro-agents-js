@@ -192,8 +192,7 @@ export function iztroZiweiModel(options: IztroZiweiModelOptions = {}): IztroZiwe
  * Build the hosted Qimen agent as an {@link IztroZiweiModel}.
  *
  * `iztro-qimen-v3` handles one concrete, time-sensitive matter and needs no birth
- * details. It uses the same transport and event surface as Ziwei. Server-side Qimen
- * tools such as `qimen-qigua` and `qimen-yingqi` appear in
+ * details. Public calculation names returned by the API are available in
  * `result.rawResponses[i].toolEvent` / `.iztroTools` or as {@link IztroToolEvent}.
  */
 export function iztroQimenModel(options: IztroZiweiModelOptions = {}): IztroZiweiModel {
