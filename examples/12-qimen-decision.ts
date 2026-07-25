@@ -23,6 +23,7 @@ async function main(): Promise<void> {
     // Otherwise the hosted service uses the request time.
     modelSettings: {
       providerData: {
+        thinking: 'deep',
         metadata: { current_datetime: '2026-07-20T14:30:00+08:00' },
       },
     },
