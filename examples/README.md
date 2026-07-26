@@ -38,7 +38,7 @@ The reading prints to your screen.
 
 | File | What it teaches | Key idea |
 |---|---|---|
-| `01-hello-ziwei.ts` | Your first program: one rich, professional, chart-grounded reading. | the basics |
+| `01-hello-ziwei.ts` | Your first program: one rich, professional, chart-grounded reading. | Ziwei + `modelSettings.reasoning` |
 | `02-prompt-gallery.ts` | **The showcase** — the same chart read for personality, fortune (流年运势), career, love, and wealth. Copy any prompt. | depth & variety |
 | `03-streaming-chat.ts` | Show the reply as it's typed, live. | `run(agent, …, { stream: true })` |
 | `04-memory-and-resume.ts` | Remember a conversation and **resume it later** (save the id, reload it next request). | `ChatSession` |
@@ -64,9 +64,9 @@ The reading prints to your screen.
 - **Depth is the point.** Let the agent answer fully — the rich, chart-grounded reading is
   what makes this different from a generic chatbot. Shape *what* it covers and its tone in
   the `instructions` (see `02-prompt-gallery.ts`), not by forcing it short.
-- **modelSettings** — knobs for the model. `maxTokens` is a hard ceiling on reply length
-  for **cost control in production** (see `09-limit-length-and-cost.ts`) — a budget limit,
-  not a quality setting.
+- **modelSettings** — standard OpenAI model options shared by Ziwei and Qimen.
+  `reasoning: { effort: 'high' }` selects deep reasoning; `maxTokens` is a separate hard
+  ceiling for **cost control in production** (see `09-limit-length-and-cost.ts`).
 - **ChatSession** — optional memory, so the agent remembers earlier messages. History lives
   on the server under a conversation id; **save `session.sessionId`** to resume the chat
   later (see `04-memory-and-resume.ts`). `listUserConversations(userId)` lists a user's chats.
