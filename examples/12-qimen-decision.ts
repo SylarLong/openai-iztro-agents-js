@@ -22,8 +22,8 @@ async function main(): Promise<void> {
     // Optional. Pin the user's local question time when you need a reproducible chart.
     // Otherwise the hosted service uses the request time.
     modelSettings: {
+      reasoning: { effort: 'high' },
       providerData: {
-        thinking: 'deep',
         metadata: { current_datetime: '2026-07-20T14:30:00+08:00' },
       },
     },

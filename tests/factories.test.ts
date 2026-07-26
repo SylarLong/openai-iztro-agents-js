@@ -106,9 +106,11 @@ describe('model factory', () => {
   });
 
   it.each([
-    IZTRO_ZIWEI_MODEL,
-    IZTRO_QIMEN_MODEL,
-  ] as const)('sends deep thinking for %s through modelSettings', async (modelName) => {
+    [IZTRO_ZIWEI_MODEL, 'low'],
+    [IZTRO_ZIWEI_MODEL, 'high'],
+    [IZTRO_QIMEN_MODEL, 'low'],
+    [IZTRO_QIMEN_MODEL, 'high'],
+  ] as const)('sends native reasoning effort for %s through modelSettings', async (modelName, effort) => {
     const { body } = await captureRunRequest(
       () =>
         new Agent({
@@ -116,8 +118,8 @@ describe('model factory', () => {
           model: iztroZiweiModel({ apiKey: 'k', model: modelName }),
           modelSettings: {
             maxTokens: 123,
+            reasoning: { effort },
             providerData: {
-              thinking: 'deep',
               metadata: { current_datetime: '2026-07-20T14:30:00+08:00' },
             },
           },
@@ -125,13 +127,15 @@ describe('model factory', () => {
     );
 
     expect(body.model).toBe(modelName);
-    expect(body.thinking).toBe('deep');
+    expect(body.reasoning_effort).toBe(effort);
+    expect(body).not.toHaveProperty('thinking');
     expect(body.max_tokens).toBe(123);
     expect(body.metadata).toEqual({ current_datetime: '2026-07-20T14:30:00+08:00' });
   });
 
-  it('omits thinking by default', async () => {
+  it('omits reasoning effort by default', async () => {
     const { body } = await captureRequest({ apiKey: 'k' });
+    expect(body).not.toHaveProperty('reasoning_effort');
     expect(body).not.toHaveProperty('thinking');
   });
 });
@@ -160,11 +164,11 @@ describe('agent factory', () => {
   });
 
   it('passes modelSettings through both agent factories', async () => {
-    const modelSettings = { providerData: { thinking: 'deep' } };
+    const modelSettings = { reasoning: { effort: 'high' as const } };
     const ziwei = await captureRunRequest(() => iztroZiweiAgent({ apiKey: 'k', modelSettings }));
     const qimen = await captureRunRequest(() => iztroQimenAgent({ apiKey: 'k', modelSettings }));
-    expect(ziwei.body.thinking).toBe('deep');
-    expect(qimen.body.thinking).toBe('deep');
+    expect(ziwei.body.reasoning_effort).toBe('high');
+    expect(qimen.body.reasoning_effort).toBe('high');
   });
 
   it('forwards the documented Qimen question time metadata', async () => {

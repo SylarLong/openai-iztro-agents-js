@@ -58,20 +58,20 @@ console.log(result.finalOutput);
 
 `iztroZiweiAgent(...)` returns a **stock `Agent`** whose model is the hosted Ziwei agent — so everything from the OpenAI Agents SDK works unchanged (`result.newItems`, streaming via `run(agent, input, { stream: true })`, handoffs, tracing, …).
 
-## Thinking modes
+## Reasoning effort
 
-Both hosted models use standard generation by default. Configure deep thinking through the OpenAI Agents SDK's `modelSettings`:
+Both hosted models follow the OpenAI Agents SDK's native `modelSettings.reasoning` contract:
 
 ```ts
 const standardAgent = iztroZiweiAgent();
 const deepAgent = iztroQimenAgent({
   modelSettings: {
-    providerData: {thinking: 'deep'},
+    reasoning: { effort: 'high' },
   },
 });
 ```
 
-Omit `thinking` for standard generation. Set it to `'deep'` for comprehensive reports, difficult chart synthesis, and Qimen decisions that require several pieces of evidence. `thinking` is an Iztro provider extension, so it belongs in `modelSettings.providerData`, not as an Agent factory argument.
+Omit `reasoning`, or use `none`, `minimal`, or `low`, for the faster non-thinking path. `medium`, `high`, and `xhigh` use the same deep-reasoning path; `high` is a clear default for comprehensive reports, difficult chart synthesis, and multi-evidence Qimen decisions. No Iztro-specific setting or package upgrade is required.
 
 ## Qimen model
 
@@ -109,8 +109,8 @@ const agent = iztroQimenAgent({
   // Optional: pin the user's local question time for reproducible charts.
   // If omitted, the service uses the request time.
   modelSettings: {
+    reasoning: { effort: 'high' },
     providerData: {
-      thinking: 'deep',
       metadata: { current_datetime: '2026-07-20T14:30:00+08:00' },
     },
   },
