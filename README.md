@@ -58,22 +58,39 @@ console.log(result.finalOutput);
 
 `iztroZiweiAgent(...)` returns a **stock `Agent`** whose model is the hosted Ziwei agent — so everything from the OpenAI Agents SDK works unchanged (`result.newItems`, streaming via `run(agent, input, { stream: true })`, handoffs, tracing, …).
 
-## Reasoning effort
+## Model settings
 
-Both hosted models follow the OpenAI Agents SDK's native `modelSettings.reasoning` contract:
+Both hosted models use the same native OpenAI Agents SDK `modelSettings` contract:
 
 ```ts
+import type { ModelSettings } from '@openai/agents';
 import { iztroQimenAgent, iztroZiweiAgent } from 'openai-iztro-agents';
 
-const deepSettings = {
+const settings: ModelSettings = {
   reasoning: { effort: 'high' as const },
+  maxTokens: 384000,
+  temperature: 0.4,
+  topP: 0.9,
+  frequencyPenalty: 0,
+  presencePenalty: 0,
+  toolChoice: 'auto',
+  parallelToolCalls: true,
+  providerData: {
+    language: 'vi',
+    enable_iztro_call: true,
+    metadata: { current_datetime: '2026-07-20T14:30:00+08:00' },
+  },
 };
 
-const ziwei = iztroZiweiAgent({ modelSettings: deepSettings });
-const qimen = iztroQimenAgent({ modelSettings: deepSettings });
+const ziwei = iztroZiweiAgent({ modelSettings: settings });
+const qimen = iztroQimenAgent({ modelSettings: settings });
 ```
 
-`modelSettings` is model-independent: configure Ziwei and Qimen in exactly the same way. Omit `reasoning`, or use `none`, `minimal`, or `low`, for the faster non-thinking path. `medium`, `high`, and `xhigh` use the same deep-reasoning path; `high` is a clear default for comprehensive reports, difficult chart synthesis, and multi-evidence decisions. No Iztro-specific setting or package upgrade is required. See [Model settings](https://api-doc.iztro.com/sdk/model-settings).
+Omit `reasoning`, or use `none`, `minimal`, or `low`, for the faster non-thinking path. `medium`, `high`, and `xhigh` use the deep-reasoning path. Omit `maxTokens` to keep the current 384,000-token default output capacity.
+
+Supported response languages are `zh`, `en`, `ko`, `ja`, and `vi`; setting `providerData.language` keeps all user-facing prose and translated terminology in that language without mixing. For live Qimen requests, create `providerData.metadata.current_datetime` from the user's local clock on each turn rather than keeping the fixed example value.
+
+See the complete [Model settings support matrix](https://api-doc.iztro.com/sdk/model-settings), including raw HTTP names and upstream SDK fields that are not hosted-model controls.
 
 ## Qimen model
 
