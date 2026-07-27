@@ -64,9 +64,11 @@ The reading prints to your screen.
 - **Depth is the point.** Let the agent answer fully — the rich, chart-grounded reading is
   what makes this different from a generic chatbot. Shape *what* it covers and its tone in
   the `instructions` (see `02-prompt-gallery.ts`), not by forcing it short.
-- **modelSettings** — standard OpenAI model options shared by Ziwei and Qimen.
-  `reasoning: { effort: 'high' }` selects deep reasoning; `maxTokens` is a separate hard
-  ceiling for **cost control in production** (see `09-limit-length-and-cost.ts`).
+- **modelSettings** — supported OpenAI model options shared by Ziwei and Qimen.
+  `reasoning: { effort: 'high' }` selects deep reasoning; `temperature` or `topP` may be
+  used only in non-thinking mode, never together. DeepSeek does not support frequency or
+  presence penalties. `maxTokens` is a separate hard ceiling for **cost control in
+  production** (see `09-limit-length-and-cost.ts`).
   `providerData.language` forces an unmixed response language, while
   `providerData.metadata.current_datetime` carries the user's local Qimen question time.
 - **ChatSession** — optional memory, so the agent remembers earlier messages. History lives

@@ -106,8 +106,10 @@ describe('model factory', () => {
   });
 
   it.each([
+    [IZTRO_ZIWEI_MODEL, 'none'],
     [IZTRO_ZIWEI_MODEL, 'low'],
     [IZTRO_ZIWEI_MODEL, 'high'],
+    [IZTRO_QIMEN_MODEL, 'none'],
     [IZTRO_QIMEN_MODEL, 'low'],
     [IZTRO_QIMEN_MODEL, 'high'],
   ] as const)('sends native reasoning effort for %s through modelSettings', async (modelName, effort) => {
