@@ -23,16 +23,34 @@
 // Re-export the SDK essentials so callers can import everything from one place.
 export { Agent, Runner, run, tool } from '@openai/agents';
 
-export { iztroQimenAgent, iztroZiweiAgent } from './agent.js';
-export type { IztroQimenAgentOptions, IztroZiweiAgentOptions } from './agent.js';
+export {
+  iztroHybridAgent,
+  iztroQimenAgent,
+  iztroQimenFastAgent,
+  iztroZiweiAgent,
+  iztroZiweiFastAgent,
+} from './agent.js';
+export type {
+  IztroHybridAgentOptions,
+  IztroQimenAgentOptions,
+  IztroQimenFastAgentOptions,
+  IztroZiweiAgentOptions,
+  IztroZiweiFastAgentOptions,
+} from './agent.js';
 export {
   DEFAULT_BASE_URL,
+  IZTRO_HYBRID_MODEL,
+  IZTRO_QIMEN_FAST_MODEL,
   IZTRO_QIMEN_MODEL,
+  IZTRO_ZIWEI_FAST_MODEL,
   IZTRO_ZIWEI_MODEL,
   IZTRO_TOOLS_EVENT_TYPE,
   TOOL_EVENT_TYPE,
   IztroZiweiModel,
+  iztroHybridModel,
+  iztroQimenFastModel,
   iztroQimenModel,
+  iztroZiweiFastModel,
   iztroZiweiModel,
   isIztroToolEvent,
   isIztroToolsStreamEvent,

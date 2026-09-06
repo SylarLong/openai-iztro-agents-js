@@ -60,12 +60,17 @@ console.log(result.finalOutput);
 
 ## Model settings
 
-Both hosted models use the same supported subset of the native OpenAI Agents SDK
+All four public hosted models use the same supported subset of the native OpenAI Agents SDK
 `modelSettings`. Deep reasoning and sampling are separate modes:
 
 ```ts
 import type { ModelSettings } from '@openai/agents';
-import { iztroQimenAgent, iztroZiweiAgent } from 'openai-iztro-agents';
+import {
+  iztroQimenAgent,
+  iztroQimenFastAgent,
+  iztroZiweiAgent,
+  iztroZiweiFastAgent,
+} from 'openai-iztro-agents';
 
 const deepSettings: ModelSettings = {
   reasoning: { effort: 'high' as const },
@@ -86,6 +91,8 @@ const fastSettings: ModelSettings = {
 
 const ziwei = iztroZiweiAgent({ modelSettings: deepSettings });
 const qimen = iztroQimenAgent({ modelSettings: fastSettings });
+const ziweiFast = iztroZiweiFastAgent({ modelSettings: fastSettings });
+const qimenFast = iztroQimenFastAgent({ modelSettings: fastSettings });
 ```
 
 Omit `reasoning`, or use `none`, `minimal`, or `low`, for the faster non-thinking path. `medium`, `high`, and `xhigh` use the same `high` deep-reasoning path. `temperature` and `topP` work only on the non-thinking path and are mutually exclusive. DeepSeek does not support `frequencyPenalty` or `presencePenalty`; the hosted API rejects them instead of silently ignoring them. Omit `maxTokens` to keep the current 384,000-token default output capacity.
@@ -110,6 +117,12 @@ It casts the chart from the question time, so it does **not** need a birth date,
 | --- | --- | --- |
 | `iztro-qimen-v3` | One current event, decision, outcome, and optional timing | The concrete situation and question time |
 | `iztro-ziwei-v3` | Natal profile, compatibility, and longer-term fortune cycles | Birth date, birth time, and gender |
+| `iztro-ziwei-v3-fast` | Lower-latency Ziwei analysis; exposes only the hosted `get_ziwei` tool | Birth date, birth time, and gender |
+| `iztro-qimen-v3-fast` | Lower-latency Qimen analysis; exposes only the hosted `qigua` and `yingqi` tools | The concrete situation and question time |
+
+The two `-fast` variants keep the hosted tool surface focused:
+`iztroZiweiFastAgent(...)` exposes only `get_ziwei`, while
+`iztroQimenFastAgent(...)` exposes only `qigua` and `yingqi`.
 
 ### Qimen request rules
 
@@ -146,7 +159,7 @@ const result = await run(
 console.log(result.finalOutput);
 ```
 
-For a strong request, describe the current situation, ask one decision, and say whether you need timing. Put unrelated matters in separate runs so each receives its own chart. See the complete [`12-qimen-decision.ts`](./examples/12-qimen-decision.ts) example and compare both public models in the [Models guide](https://api-doc.iztro.com/sdk/models).
+For a strong request, describe the current situation, ask one decision, and say whether you need timing. Put unrelated matters in separate runs so each receives its own chart. See the complete [`12-qimen-decision.ts`](./examples/12-qimen-decision.ts) example and compare all four public models in the [Models guide](https://api-doc.iztro.com/sdk/models).
 
 Public Iztro calculation names are available through Iztro tool events. Your own function tools, MCP servers, and human-in-the-loop continue to use the normal OpenAI Agents SDK interfaces.
 
@@ -245,9 +258,13 @@ const agent = iztroZiweiAgent({ mcpServers: [weather], apiKey: KEY });
 | `iztroZiweiModel(opts)` | `iztro_ziwei_model(...)` | stock `OpenAIChatCompletionsModel` |
 | `iztroQimenAgent(opts)` | `iztro_qimen_agent(...)` | stock `Agent`, hosted Qimen model |
 | `iztroQimenModel(opts)` | `iztro_qimen_model(...)` | stock `OpenAIChatCompletionsModel` |
+| `iztroZiweiFastAgent(opts)` | `iztro_ziwei_fast_agent(...)` | stock `Agent`, compact fast Ziwei model |
+| `iztroZiweiFastModel(opts)` | `iztro_ziwei_fast_model(...)` | stock `OpenAIChatCompletionsModel` |
+| `iztroQimenFastAgent(opts)` | `iztro_qimen_fast_agent(...)` | stock `Agent`, focused fast Qimen model |
+| `iztroQimenFastModel(opts)` | `iztro_qimen_fast_model(...)` | stock `OpenAIChatCompletionsModel` |
 | `ChatSession` | `ChatSession` | server-side memory (`Session`) |
 | `listUserConversations(id, opts)` | `list_user_conversations(...)` | list a user's chats |
-| `DEFAULT_BASE_URL`, `IZTRO_ZIWEI_MODEL`, `IZTRO_QIMEN_MODEL`, `TOOL_EVENT_TYPE` | same | constants |
+| `DEFAULT_BASE_URL`, `IZTRO_ZIWEI_MODEL`, `IZTRO_QIMEN_MODEL`, `IZTRO_ZIWEI_FAST_MODEL`, `IZTRO_QIMEN_FAST_MODEL`, `TOOL_EVENT_TYPE` | same | constants |
 | re-exports: `Agent`, `Runner`, `run`, `tool` | `Agent`, `Runner`, `function_tool` | from `@openai/agents` |
 
 Options use `camelCase` (`apiKey`, `baseUrl`, `externalUserId`, `modelName`) — the JS convention — where Python uses `snake_case`.

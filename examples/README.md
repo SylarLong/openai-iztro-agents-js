@@ -50,6 +50,7 @@ The reading prints to your screen.
 | `10-chinese-chat.ts` | Do everything in Chinese (中文全程对话). | unicode end-to-end |
 | `11-agent-as-tool.ts` | Use the Ziwei agent as **one tool** inside your own GPT agent. | agents-as-tools |
 | `12-qimen-decision.ts` | Analyze one concrete decision and, when needed, calculate action windows with Qimen. | `iztroQimenAgent` + question time |
+| `13-fast-ziwei-session-best-practice.ts` | Illustrative customer-style multi-turn integration with a profile configured once. | `iztroZiweiFastAgent` + `ChatSession` |
 | `fullstack-demo/` | The same React chat workbench backed by this JS SDK: list, rename, delete, fork, edit, charts, Markdown, and streaming. | production integration shape |
 
 ## A few words you'll see

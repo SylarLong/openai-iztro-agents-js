@@ -12,12 +12,21 @@ import { Agent, run } from '@openai/agents';
 import {
   ChatSession,
   DEFAULT_BASE_URL,
+  IZTRO_HYBRID_MODEL,
+  IZTRO_QIMEN_FAST_MODEL,
   IZTRO_QIMEN_MODEL,
+  IZTRO_ZIWEI_FAST_MODEL,
   IZTRO_ZIWEI_MODEL,
   TOOL_EVENT_TYPE,
+  iztroHybridAgent,
+  iztroHybridModel,
   iztroQimenAgent,
+  iztroQimenFastAgent,
+  iztroQimenFastModel,
   iztroQimenModel,
   iztroZiweiAgent,
+  iztroZiweiFastAgent,
+  iztroZiweiFastModel,
   iztroZiweiModel,
   isIztroToolEvent,
   isIztroToolsStreamEvent,
@@ -68,6 +77,9 @@ describe('model factory', () => {
     expect(DEFAULT_BASE_URL).toBe('https://chat-api.iztro.com');
     expect(IZTRO_ZIWEI_MODEL).toBe('iztro-ziwei-v3');
     expect(IZTRO_QIMEN_MODEL).toBe('iztro-qimen-v3');
+    expect(IZTRO_HYBRID_MODEL).toBe('iztro-hybrid-v3');
+    expect(IZTRO_ZIWEI_FAST_MODEL).toBe('iztro-ziwei-v3-fast');
+    expect(IZTRO_QIMEN_FAST_MODEL).toBe('iztro-qimen-v3-fast');
     expect(TOOL_EVENT_TYPE).toBe('tool_event');
   });
 
@@ -91,6 +103,24 @@ describe('model factory', () => {
     expect(body.model).toBe(IZTRO_QIMEN_MODEL);
   });
 
+  it('has a hybrid model factory', async () => {
+    const { body } = await captureRunRequest(
+      () => new Agent({ name: 'Hybrid', model: iztroHybridModel({ apiKey: 'k' }) }),
+    );
+    expect(body.model).toBe(IZTRO_HYBRID_MODEL);
+  });
+
+  it('has fast model factories', async () => {
+    const ziwei = await captureRunRequest(
+      () => new Agent({ name: 'Ziwei Fast', model: iztroZiweiFastModel({ apiKey: 'k' }) }),
+    );
+    const qimen = await captureRunRequest(
+      () => new Agent({ name: 'Qimen Fast', model: iztroQimenFastModel({ apiKey: 'k' }) }),
+    );
+    expect(ziwei.body.model).toBe(IZTRO_ZIWEI_FAST_MODEL);
+    expect(qimen.body.model).toBe(IZTRO_QIMEN_FAST_MODEL);
+  });
+
   it('explicit baseUrl wins over env and trims a trailing slash', async () => {
     process.env.ZIWEI_BASE_URL = 'http://from-env.test';
     const explicit = await captureRequest({ apiKey: 'k', baseUrl: 'http://explicit.test/' });
@@ -112,6 +142,15 @@ describe('model factory', () => {
     [IZTRO_QIMEN_MODEL, 'none'],
     [IZTRO_QIMEN_MODEL, 'low'],
     [IZTRO_QIMEN_MODEL, 'high'],
+    [IZTRO_HYBRID_MODEL, 'none'],
+    [IZTRO_HYBRID_MODEL, 'low'],
+    [IZTRO_HYBRID_MODEL, 'high'],
+    [IZTRO_ZIWEI_FAST_MODEL, 'none'],
+    [IZTRO_ZIWEI_FAST_MODEL, 'low'],
+    [IZTRO_ZIWEI_FAST_MODEL, 'high'],
+    [IZTRO_QIMEN_FAST_MODEL, 'none'],
+    [IZTRO_QIMEN_FAST_MODEL, 'low'],
+    [IZTRO_QIMEN_FAST_MODEL, 'high'],
   ] as const)('sends native reasoning effort for %s through modelSettings', async (modelName, effort) => {
     const { body } = await captureRunRequest(
       () =>
@@ -165,12 +204,45 @@ describe('agent factory', () => {
     expect(body.model).toBe(IZTRO_QIMEN_MODEL);
   });
 
-  it('passes modelSettings through both agent factories', async () => {
+  it('has fast agent factories', async () => {
+    const ziweiAgent = iztroZiweiFastAgent({ apiKey: 'k' });
+    const qimenAgent = iztroQimenFastAgent({ apiKey: 'k' });
+    expect(ziweiAgent.name).toBe('Ziwei Fast');
+    expect(qimenAgent.name).toBe('Qimen Fast');
+    expect(ziweiAgent.tools).toEqual([]);
+    expect(qimenAgent.tools).toEqual([]);
+
+    const ziwei = await captureRunRequest(() => iztroZiweiFastAgent({ apiKey: 'k' }));
+    const qimen = await captureRunRequest(() => iztroQimenFastAgent({ apiKey: 'k' }));
+    expect(ziwei.body.model).toBe(IZTRO_ZIWEI_FAST_MODEL);
+    expect(qimen.body.model).toBe(IZTRO_QIMEN_FAST_MODEL);
+  });
+
+  it('has a hybrid agent factory', async () => {
+    const agent = iztroHybridAgent({ apiKey: 'k' });
+    expect(agent).toBeInstanceOf(Agent);
+    expect(agent.name).toBe('Ziwei + Qimen');
+    expect(agent.tools).toEqual([]);
+    const { body } = await captureRunRequest(() => iztroHybridAgent({ apiKey: 'k' }));
+    expect(body.model).toBe(IZTRO_HYBRID_MODEL);
+  });
+
+  it('passes modelSettings through all agent factories', async () => {
     const modelSettings = { reasoning: { effort: 'high' as const } };
     const ziwei = await captureRunRequest(() => iztroZiweiAgent({ apiKey: 'k', modelSettings }));
     const qimen = await captureRunRequest(() => iztroQimenAgent({ apiKey: 'k', modelSettings }));
+    const hybrid = await captureRunRequest(() => iztroHybridAgent({ apiKey: 'k', modelSettings }));
+    const ziweiFast = await captureRunRequest(() =>
+      iztroZiweiFastAgent({ apiKey: 'k', modelSettings }),
+    );
+    const qimenFast = await captureRunRequest(() =>
+      iztroQimenFastAgent({ apiKey: 'k', modelSettings }),
+    );
     expect(ziwei.body.reasoning_effort).toBe('high');
     expect(qimen.body.reasoning_effort).toBe('high');
+    expect(hybrid.body.reasoning_effort).toBe('high');
+    expect(ziweiFast.body.reasoning_effort).toBe('high');
+    expect(qimenFast.body.reasoning_effort).toBe('high');
   });
 
   it('forwards the documented Qimen question time metadata', async () => {

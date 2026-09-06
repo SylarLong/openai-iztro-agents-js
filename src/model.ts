@@ -20,6 +20,9 @@ import OpenAI from 'openai';
 export const DEFAULT_BASE_URL = 'https://chat-api.iztro.com';
 export const IZTRO_ZIWEI_MODEL = 'iztro-ziwei-v3';
 export const IZTRO_QIMEN_MODEL = 'iztro-qimen-v3';
+export const IZTRO_HYBRID_MODEL = 'iztro-hybrid-v3';
+export const IZTRO_ZIWEI_FAST_MODEL = 'iztro-ziwei-v3-fast';
+export const IZTRO_QIMEN_FAST_MODEL = 'iztro-qimen-v3-fast';
 
 /** The `type` discriminator carried by an {@link IztroToolEvent}. */
 export const TOOL_EVENT_TYPE = 'tool_event';
@@ -197,4 +200,19 @@ export function iztroZiweiModel(options: IztroZiweiModelOptions = {}): IztroZiwe
  */
 export function iztroQimenModel(options: IztroZiweiModelOptions = {}): IztroZiweiModel {
   return iztroZiweiModel({ ...options, model: options.model ?? IZTRO_QIMEN_MODEL });
+}
+
+/** Build the latency-optimized hosted Ziwei model with only the `get_ziwei` tool. */
+export function iztroZiweiFastModel(options: IztroZiweiModelOptions = {}): IztroZiweiModel {
+  return iztroZiweiModel({ ...options, model: options.model ?? IZTRO_ZIWEI_FAST_MODEL });
+}
+
+/** Build the latency-optimized hosted Qimen model with only `qigua` and `yingqi`. */
+export function iztroQimenFastModel(options: IztroZiweiModelOptions = {}): IztroZiweiModel {
+  return iztroZiweiModel({ ...options, model: options.model ?? IZTRO_QIMEN_FAST_MODEL });
+}
+
+/** Build the callable hosted Ziwei + Qimen hybrid model. */
+export function iztroHybridModel(options: IztroZiweiModelOptions = {}): IztroZiweiModel {
+  return iztroZiweiModel({ ...options, model: options.model ?? IZTRO_HYBRID_MODEL });
 }

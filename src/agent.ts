@@ -4,9 +4,15 @@ import { Agent } from '@openai/agents';
 import type { Tool } from '@openai/agents';
 
 import {
+  IZTRO_HYBRID_MODEL,
+  IZTRO_QIMEN_FAST_MODEL,
   IZTRO_QIMEN_MODEL,
+  IZTRO_ZIWEI_FAST_MODEL,
   IZTRO_ZIWEI_MODEL,
+  iztroHybridModel,
+  iztroQimenFastModel,
   iztroQimenModel,
+  iztroZiweiFastModel,
   iztroZiweiModel,
 } from './model.js';
 
@@ -25,6 +31,9 @@ export interface IztroZiweiAgentOptions {
 }
 
 export type IztroQimenAgentOptions = IztroZiweiAgentOptions;
+export type IztroHybridAgentOptions = IztroZiweiAgentOptions;
+export type IztroZiweiFastAgentOptions = IztroZiweiAgentOptions;
+export type IztroQimenFastAgentOptions = IztroZiweiAgentOptions;
 
 /**
  * Return a stock `Agent` whose model is the hosted Ziwei agent.
@@ -92,6 +101,75 @@ export function iztroQimenAgent(options: IztroQimenAgentOptions = {}): Agent {
     name,
     ...(instructions !== undefined ? { instructions } : {}),
     model: iztroQimenModel({ apiKey, baseUrl, model: modelName }),
+    tools: (tools ?? []) as Tool[],
+    mcpServers: (mcpServers ?? []) as never,
+    ...rest,
+  });
+}
+
+/** Return a stock Agent backed by the compact, fast Ziwei model. */
+export function iztroZiweiFastAgent(options: IztroZiweiFastAgentOptions = {}): Agent {
+  const {
+    name = 'Ziwei Fast',
+    instructions,
+    tools,
+    mcpServers,
+    apiKey,
+    baseUrl,
+    modelName = IZTRO_ZIWEI_FAST_MODEL,
+    ...rest
+  } = options;
+
+  return new Agent({
+    name,
+    ...(instructions !== undefined ? { instructions } : {}),
+    model: iztroZiweiFastModel({ apiKey, baseUrl, model: modelName }),
+    tools: (tools ?? []) as Tool[],
+    mcpServers: (mcpServers ?? []) as never,
+    ...rest,
+  });
+}
+
+/** Return a stock Agent backed by the focused, fast Qimen model. */
+export function iztroQimenFastAgent(options: IztroQimenFastAgentOptions = {}): Agent {
+  const {
+    name = 'Qimen Fast',
+    instructions,
+    tools,
+    mcpServers,
+    apiKey,
+    baseUrl,
+    modelName = IZTRO_QIMEN_FAST_MODEL,
+    ...rest
+  } = options;
+
+  return new Agent({
+    name,
+    ...(instructions !== undefined ? { instructions } : {}),
+    model: iztroQimenFastModel({ apiKey, baseUrl, model: modelName }),
+    tools: (tools ?? []) as Tool[],
+    mcpServers: (mcpServers ?? []) as never,
+    ...rest,
+  });
+}
+
+/** Return a stock `Agent` backed by the callable hosted hybrid model. */
+export function iztroHybridAgent(options: IztroHybridAgentOptions = {}): Agent {
+  const {
+    name = 'Ziwei + Qimen',
+    instructions,
+    tools,
+    mcpServers,
+    apiKey,
+    baseUrl,
+    modelName = IZTRO_HYBRID_MODEL,
+    ...rest
+  } = options;
+
+  return new Agent({
+    name,
+    ...(instructions !== undefined ? { instructions } : {}),
+    model: iztroHybridModel({ apiKey, baseUrl, model: modelName }),
     tools: (tools ?? []) as Tool[],
     mcpServers: (mcpServers ?? []) as never,
     ...rest,
