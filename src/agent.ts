@@ -107,7 +107,7 @@ export function iztroQimenAgent(options: IztroQimenAgentOptions = {}): Agent {
   });
 }
 
-/** Return a stock Agent backed by the compact, fast Ziwei model. */
+/** Return a stock Agent backed by the faster, lower-token, lower-cost Ziwei model. */
 export function iztroZiweiFastAgent(options: IztroZiweiFastAgentOptions = {}): Agent {
   const {
     name = 'Ziwei Fast',
@@ -130,7 +130,7 @@ export function iztroZiweiFastAgent(options: IztroZiweiFastAgentOptions = {}): A
   });
 }
 
-/** Return a stock Agent backed by the focused, fast Qimen model. */
+/** Return a stock Agent backed by the faster, lower-token, lower-cost Qimen model. */
 export function iztroQimenFastAgent(options: IztroQimenFastAgentOptions = {}): Agent {
   const {
     name = 'Qimen Fast',

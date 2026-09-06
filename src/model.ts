@@ -202,12 +202,12 @@ export function iztroQimenModel(options: IztroZiweiModelOptions = {}): IztroZiwe
   return iztroZiweiModel({ ...options, model: options.model ?? IZTRO_QIMEN_MODEL });
 }
 
-/** Build the focused, latency-optimized Ziwei model with the v3 public response contract. */
+/** Build the faster, lower-token, lower-cost Ziwei model with the v3 public response contract. */
 export function iztroZiweiFastModel(options: IztroZiweiModelOptions = {}): IztroZiweiModel {
   return iztroZiweiModel({ ...options, model: options.model ?? IZTRO_ZIWEI_FAST_MODEL });
 }
 
-/** Build the focused, latency-optimized Qimen model with the v3 public response contract. */
+/** Build the faster, lower-token, lower-cost Qimen model with the v3 public response contract. */
 export function iztroQimenFastModel(options: IztroZiweiModelOptions = {}): IztroZiweiModel {
   return iztroZiweiModel({ ...options, model: options.model ?? IZTRO_QIMEN_FAST_MODEL });
 }
